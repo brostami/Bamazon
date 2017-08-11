@@ -45,9 +45,3 @@ VALUES ('Crate (Medium)', 'Crates & Carriers', 40, 20);
 SELECT * FROM products;
 
 update products set product_name = 'Leash (Extendable)' where id = 7;
-
-COLUMN id FORMAT A10;
-COLUMN product_name FORMAT A20;
-COLUMN dept_name FORMAT A20;
-COLUMN price FORMAT A7;
-COLUMN id FORMAT A7;

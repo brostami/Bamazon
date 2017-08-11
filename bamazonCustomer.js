@@ -15,16 +15,6 @@ connection.connect(function(err) {
     getProducts();    
 });
 
-// function displayItems() {
-//     var query = 'SELECT * FROM products';
-//     connection.query(query, function(err, res) {
-//         console.log('\n-----------------------------------\n');
-//         for (var i = 0; i < res.length; i++) {
-//             console.log(res[i].id + ' || ' + res[i].product_name + ' || ' + '$' + res[i].price);
-//         }
-//         console.log('\n-----------------------------------');
-//     });
-// }
 var products = [];
 
 function getProducts() {
@@ -84,7 +74,7 @@ function userQuestions() {
         {
             name: "choice",
             type: "list",
-            choices:['Purchase', 'See Top Sellers', 'Exit'],
+            choices:['Purchase', 'Exit'],
             message: 'What would you like to do?'
         }
     ]).then(function(answers) {
@@ -96,8 +86,7 @@ function userQuestions() {
                 highestGross();
                 break;
             case 'Exit':
-
-                break;
+                connection.end();
         }
     });
 }
@@ -112,29 +101,34 @@ function makePurchase() {
             message: "How many? "
         }
     ]).then(function(answers) {
-        var userQty = parseInt(answers.quantity);
-        var userTotal = 0;
-        connection.query("SELECT * FROM products WHERE id=?", parseInt(answers.item), function(err, res)  {
-            if (err) throw err;
-            var storeQty = res[0].quantity;
-            if (storeQty < userQty) {
-                console.log('Insufficient Inventory. ' + storeQty + ' available.');
-                makePurchase();
-            }
-            else {
-                updatedQty = parseInt(storeQty) - userQty;
-                connection.query("SELECT * FROM products WHERE id=?", parseInt(answers.item), function(err, res) {
-                    if (err) throw err;
-                    console.log(userQty + ' x ' + res[0].name + ' (' + res[0].price + ')');
-                    var item = res[0].product_name;
-                    var itemPrice = res[0].price;
-                    userTotal = userQty * itemPrice;
-                    userPurchase = [{item: item, price: itemPrice, qty: userQty, total: userTotal}];
-                    displayTotal(userPurchase);
-                });
-                connection.query("UPDATE products SET quantity=" + updatedQty + " WHERE id=" + parseInt(answers.item));
-            }
-        });
+        if (!answers.item) {
+            console.log('ERROR: Invalid Entry');
+            makePurchase();
+        }
+        else {
+            var userQty = parseInt(answers.quantity);
+            var userTotal = 0;
+            connection.query("SELECT * FROM products WHERE id=?", parseInt(answers.item), function(err, res)  {
+                if (err) throw err;
+                var storeQty = res[0].quantity;
+                if (storeQty < userQty) {
+                    console.log('Insufficient Inventory. ' + storeQty + ' available.');
+                    userQuestions();
+                }
+                else {
+                    updatedQty = parseInt(storeQty) - userQty;
+                    connection.query("SELECT * FROM products WHERE id=?", parseInt(answers.item), function(err, res) {
+                        if (err) throw err;
+                        var item = res[0].product_name;
+                        var itemPrice = res[0].price;
+                        userTotal = userQty * itemPrice;
+                        userPurchase = [{item: item, price: '$' + itemPrice, qty: userQty, total: '$' + userTotal}];
+                        displayTotal(userPurchase);
+                    });
+                    connection.query("UPDATE products SET quantity=" + updatedQty + " WHERE id=" + parseInt(answers.item));
+                } 
+            });
+        }
     });
 }
 
@@ -144,7 +138,7 @@ function displayTotal(purchasedItem) {
         value : "item",
         headerColor : "cyan",
         color: "white",
-        align : "left",
+        align : "center",
         paddingLeft : 2,
         width : 30
     },
@@ -152,7 +146,7 @@ function displayTotal(purchasedItem) {
         value : "price",
         headerColor : "cyan",
         color : "white", 
-        width : 20,
+        width : 15,
         align : "center",
         paddingLeft : 2,
     },    
@@ -162,13 +156,13 @@ function displayTotal(purchasedItem) {
         color: "white",
         align: "center",
         paddingLeft : 2,
-        width : 10
+        width : 12
     },
     {
         value : "total",
         headerColor : "cyan",
         color : "white", 
-        width : 20,
+        width : 15,
         align : "center",
         paddingLeft : 2,
     }
@@ -184,7 +178,6 @@ function displayTotal(purchasedItem) {
 
     var str2 = t2.render();
     console.log(str2);
-
     userQuestions();
 }
     
