@@ -44,4 +44,3 @@ VALUES ('Crate (Medium)', 'Crates & Carriers', 40, 20);
 
 SELECT * FROM products;
 
-update products set product_name = 'Leash (Extendable)' where id = 7;
